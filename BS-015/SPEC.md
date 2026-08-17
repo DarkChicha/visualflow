@@ -156,3 +156,26 @@ audio.js → AnalyserNode banda <150Hz → kick → screenfx.vibración
 - Copiar el build a `Dashboard/BS-015/` + card 05 "Cámara + Manos" en `Dashboard/index.html` (accent `#FF2A2A`, icono ⚡, href `/BS-015/`).
 - Deploy `deploy.ps1` + verificación post-deploy.
 - GitHub: repo `DarkChicha/visualflow` (README hub + BS-015/ con capturas).
+
+---
+
+## Revisión doble aplicada (Hermes + Claude Opus, 2026-08-17)
+
+Hallazgos de la revisión Opus corregidos en esta versión:
+
+- **C1** — `setTransform` → `ctx.transform` en los triángulos del logo (el setTransform rompía el DPR/shake y descuadraba el logo).
+- **C2** — el logo se renderiza en un canvas offscreen UNA vez por frame y el glow se aplica en un solo `drawImage` (antes: 324 shadowBlur por frame = FPS inviable y halo invisible).
+- **C3** — detección de kick por **flujo** (banda 20–150 Hz vs media móvil) con `FFT_SIZE=2048` (a 48 kHz el fundamental del kick vive en el bin 0, que `FFT_SIZE=512` excluía; desviación anotada de la spec original).
+- **C4** — mapeo tipo *cover* con `videoWidth/videoHeight` reales (antes las manos se estiraban 3.16× al mapear 16:9 → 9:16 y el pinch se descalibraba).
+- **M1** — fondo y viñeta se dibujan con la matriz base (fuera del shake) → sin ghosting en los bordes con la vibración.
+- **M2** — el sweep del filtro en el pinch queda protegido del `setTargetAtTime` por frame (`sweepHasta`).
+- **M3** — loop con `LOOP_DUR=44.16 s` (23 compases a 125 BPM) + cola real del mp3 en el crossfade → el groove no se corre.
+- **M4** — identidad de manos resuelta en el tracker ANTES de filtrar (asignación exclusiva por cercanía a los bancos One-Euro).
+- **M5** — try/catch en el bucle de inferencia + degradación a demo tras fallos.
+- **M6** — clamp de vértices (`CELL_CLAMP=0.45`) + `DAMP=22` (~crítico) → las celdas nunca se invierten, el logo **nunca se rompe**.
+- **M7** — spread relaja al reposo sin dos manos (el filtro del bajo no se congela).
+- **M8** — canvas a W×H sin dpr (el backing store no se sobredimensiona 18×).
+- **M9** — `facingMode:'user'` + constraints con `ideal`.
+- **M10** — `prefers-reduced-motion` reduce vibración y spawns (fotosensibilidad).
+- **Menores**: assets importados por Vite (URLs correctas con `base:'./'`, sin 404 sin barra final), cámara antes que modelos + timeout, `close()` de landmarkers, `ctx.resume()`, overlay ocultado al final, velocidad media de manos, spawns normalizados por dt, colores de hilos estables, HUD con cache, radio del simulador correcto, accesibilidad (aria, contraste).
+
