@@ -146,7 +146,7 @@ audio.js → AnalyserNode banda <150Hz → kick → screenfx.vibración
 
 ## Reglas de implementación
 - ES modules, comentarios en español, constantes en `config.js` (nada de números mágicos en los effects).
-- Nada de "after the mix" en textos.
+- Nada de lemas de evento en textos (regla del usuario).
 - El logo PNG se versiona (marca pública); NO versionar claves ni emails.
 - El mp3 del loop se genera aparte (no lo crea el agente).
 - No tocar el repo Dashboard (la integración la hace Hermes después).
