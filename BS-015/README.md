@@ -19,7 +19,7 @@ Al entrar pide cámara y audio. **Sin cámara** entra automáticamente en **modo
 ## Proceso creativo
 
 - Referencias analizadas: [Barrett Sessions — Interactive Brand Experience (Behance)](https://www.behance.net/gallery/251678487/Barrett-Sessions-Interactive-Brand-Experience) y el demo HandConnect (AR neón con manos).
-- Mockups interactivos v1→v8 en `Developer/mockups-camara-manos/` (simulador con mouse; decisiones: paleta roja Barrett, logo nunca se rompe, rayos finos, sonrisa sin display, vibración por kick, sin "after the mix").
+- Mockups interactivos v1→v8 en `Developer/mockups-camara-manos/` (simulador con mouse; decisiones: paleta roja Barrett, logo nunca se rompe, rayos finos, sonrisa sin display, vibración por kick, sin lema de evento).
 - Contrato técnico: `SPEC.md` (spec completa por módulo + correcciones de la doble revisión: Hermes + Claude Opus).
 - Audio: track generado con ElevenLabs (`docs/spectrograma-acid-loop.png` muestra el perfil: subgraves masivos, kick 4/4, 303 en medios, hi-hats).
 

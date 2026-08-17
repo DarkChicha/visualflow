@@ -4,7 +4,7 @@ Pieza web de realidad aumentada de pantalla (vertical 9:16, 1080×1920): la cám
 
 **Stack**: Vite + vanilla JS (ES modules, sin framework) + MediaPipe Tasks API (CDN). Deploy: Firebase Hosting (`video-editorial.web.app/BS-015/`). Render 60fps; inferencia ML desacoplada con cap de FPS.
 
-**NO incluir el texto "after the mix" en ningún lado** (decisión del usuario).
+**NO incluir el lema del evento en la pieza** (decisión del usuario: la pieza va sin texto de marca adicional).
 
 ---
 
