@@ -41,9 +41,12 @@ export const TRACKER = {
   WASM_BASE: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm',
   HAND_MODEL: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
   FACE_MODEL: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
-  CAM_W: 720,            // ideal vertical (9:16); el cover mapea lo que el navegador conceda
-  CAM_H: 1280,
-  CAM_ASPECT: 9 / 16,
+  // Constraints: ideal 720p landscape SIN aspectRatio forzado.
+  // En móviles el sensor selfie es landscape físico; forzar 9:16 hace que
+  // el navegador recorte/zoom (efecto teleobjetivo). El cover mapping de
+  // tracker.js adapta cualquier resolución real al lienzo 9:16.
+  CAM_W: 1280,
+  CAM_H: 720,
   HANDS_CAP_MS: 50,   // ~20 fps de inferencia de manos
   FACE_CAP_MS: 100,   // ~10 fps de inferencia de cara
   NUM_HANDS: 2,
@@ -138,28 +141,34 @@ export const THREADS = {
   ALPHA_MIRROR: 0.85, ALPHA_MIRROR_DIST: 0.35,
   ALPHA_TIP_NODE: 0.5,
   ALPHA_NODE_NODE: 0.22,
-  NODE_ALPHA: 0.8
-};
+  NODE_ALPHA: 0.8,
 
-// ── Gotas glitch ──
-export const DROPS = {
-  RATE_FACTOR: 0.008,   // probabilidad por frame = energy × factor
-  MIN_ENERGY: 5,        // solo nacen si energy > 5
-  MAX: 140,
-  COOLDOWN: 0.35,       // no impactan al nacer (s)
-  GRAVITY: 600,         // px/s²
-  VY_INIT: 120, VY_RAND: 120,
-  SIZE_MIN: 10, SIZE_RAND: 14,
-  SWAY_FREQ: 2, SWAY_AMP: 16,
-  GLITCH_TIMER_MIN: 0.7, GLITCH_TIMER_RAND: 2.2, // cada 0.7–2.9 s
-  GLITCH_DUR_MIN: 0.09, GLITCH_DUR_RAND: 0.1,    // durante 0.09–0.19 s
-  CHROMA_OFFSET: 4.8,   // aberración cromática (px)
-  IMPACT_HAND: 68,      // impacto si yema a <68px
-  FLOOR_MARGIN: 92,     // suelo = H - 92
-  BURST_MIN: 6, BURST_RAND: 8, // burst de 6–14 sparks al impactar
-  SLICES_MIN: 3, SLICES_RAND: 3, // 3–5 slices de glitch
-  SLICE_OFF: 28,        // offset aleatorio de slices (px)
-  SLICE_H_MIN: 4, SLICE_H_RAND: 12
+  /* ── Hilos entre manos (L↔R): presencia fuerte + carga ──
+     Cuando las palmas están más cerca que MANOS_CERCA_DIST, los hilos
+     entre yemas espejadas se dibujan SIEMPRE (sin corte por distancia)
+     y dominan visualmente: trazo grueso, alpha alta y núcleo blanco. */
+  MANOS_CERCA_DIST: 980,      // umbral de cercanía entre palmas (px): ~0.9×W
+                              // (brazos extendidos en el encuadre real entran)
+  ENTRE_MANOS_WIDTH: 5.2,     // grosor del hilo entre manos (px)
+  ENTRE_MANOS_ALPHA: 0.92,    // alpha base (sube con la carga)
+  ENTRE_MANOS_ALPHA_CARGA: 0.08, // alpha extra a carga máxima
+  ENTRE_MANOS_SHADOW: 34,     // glow base del hilo
+  ENTRE_MANOS_SHADOW_CARGA: 26, // glow extra a carga máxima
+  ENTRE_MANOS_CORE_WIDTH: 2,  // grosor del núcleo blanco (efecto filo)
+  ENTRE_MANOS_CORE_ALPHA: 0.98,
+  ENTRE_MANOS_CORE_SHADOW: 18, // glow del núcleo blanco
+  // Con las manos lejos el hilo L↔R se dibuja igual (nunca se pierde),
+  // con piso de alpha y algo menos de grosor
+  ENTRE_MANOS_LEJOS_WIDTH: 4,
+  ENTRE_MANOS_LEJOS_ALPHA: 0.5,
+
+  /* Carga: se acumula mientras las manos siguen cerca y decae al separarse.
+     Cuanto más tiempo juntas, más vibran los hilos entre manos. */
+  CARGA_RATE: 0.55,           // unidades de carga por segundo (juntas)
+  CARGA_DECAY: 0.9,           // unidades por segundo (separadas)
+  CARGA_MAX: 1,               // tope de carga
+  VIBRACION_CARGA: 26,        // offset perpendicular máximo a carga tope (px)
+  VIBRACION_SEGS: 8           // segmentos de la polilínea vibrante
 };
 
 // ── Sparks (partículas) ──
@@ -241,7 +250,7 @@ export const AUDIO = {
 
 // ── Movimiento reducido (fotosensibilidad: evento público) ──
 export const MOTION = {
-  EFFECTS_FACTOR: 0.2,  // multiplica spawn de bolts/sparks/gotas si prefers-reduced-motion
+  EFFECTS_FACTOR: 0.2,  // multiplica spawn de bolts/sparks y la vibración de hilos si prefers-reduced-motion
   SCREENFX_AMP: 0.3,    // vibración reducida
   AUTO_KICK_OFF: true   // sin auto-kicks (solo los reales del audio)
 };
@@ -264,6 +273,14 @@ export const HUD = {
 
 // ── Fondo ──
 export const BG_COLOR = '#000';
+
+// ── Capa de cámara (video de fondo en modo live) ──
+export const CAM = {
+  // Video en blanco y negro con contraste extra: los efectos de color
+  // cortan mejor y el velo puede ser más tenue
+  FILTER: 'grayscale(1) contrast(1.15)',
+  OVERLAY_ALPHA: 0.35 // velo negro sobre el video (baja = te ves más)
+};
 
 // ── Loop ──
 export const DT_MAX = 0.033; // cap de delta-time (s)

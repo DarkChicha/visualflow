@@ -1,6 +1,6 @@
 # BS-015 — Cámara + Manos (pieza AR interactiva)
 
-Pieza web de realidad aumentada de pantalla (vertical 9:16, 1080×1920): la cámara ve las manos y la cara del usuario y genera visuales generativos en tiempo real (hilos neón, gotas glitch, logo BARRETT elástico flotante con rayos de energía, sonrisa que convoca energía, vibración de pantalla por onda grave) con un loop de acid house generado por ElevenLabs. Es el registro del área AV en el dashboard interno de Henri Barrett y pieza-showcase en GitHub (repo `DarkChicha/visualflow`, carpeta `BS-015/`).
+Pieza web de realidad aumentada de pantalla (vertical 9:16, 1080×1920): la cámara ve las manos y la cara del usuario y genera visuales generativos en tiempo real (hilos neón que se tensan y vibran entre las manos, logo BARRETT elástico flotante con rayos de energía, sonrisa que convoca energía, vibración de pantalla por onda grave) con un loop de acid house generado por ElevenLabs. Es el registro del área AV en el dashboard interno de Henri Barrett y pieza-showcase en GitHub (repo `DarkChicha/visualflow`, carpeta `BS-015/`).
 
 **Stack**: Vite + vanilla JS (ES modules, sin framework) + MediaPipe Tasks API (CDN). Deploy: Firebase Hosting (`video-editorial.web.app/BS-015/`). Render 60fps; inferencia ML desacoplada con cap de FPS.
 
@@ -32,7 +32,6 @@ BS-015/
     └── effects/
         ├── sparks.js       # partículas (bursts y chispas de yemas)
         ├── threads.js      # hilos neón
-        ├── drops.js        # gotas glitch
         ├── bolts.js        # rayos finos logo↔manos
         ├── logo.js         # logo elástico (spring mesh) + flotación + pulso
         ├── facehud.js      # marco de esquinas rojas alrededor del rostro (SIN texto)
@@ -67,7 +66,7 @@ audio.js → AnalyserNode banda <150Hz → kick → screenfx.vibración
 - Logo: `w=320`, centro `y=0.36H`, malla `GRID={cols:18, rows:9}`, física `K=150, DAMP=8, MASS=1`, repulsión manos `<260px`, fuerza vibración `0.06`.
 - Manos: 5 yemas por mano, ángulos `[-62,-31,0,31,62]°`, radio elíptico `92×44`.
 - Rayos: `prob = ((energy-20)/80)*0.55`, máx 14, 7 segmentos, offset 0.30×largo.
-- Gotas: rate `energy*0.008` (solo `energy>5`), máx 140, cooldown 0.35s, glitch cada 0.7–2.9s durante 0.09–0.19s.
+- Hilos entre manos: cercanía de palmas `<520px`, `lineWidth 5.2` + núcleo blanco `2`, alpha `0.92` (+`0.08` a carga tope), carga `rate 0.55`/s, `decay 0.9`/s, tope `1`, vibración `26px` a carga tope.
 - Onda grave: decay 2.4, `amp = kick²×30 + energy/100×2.6`, zoom `1+kick×0.006`.
 
 ### tracker.js
@@ -102,13 +101,8 @@ audio.js → AnalyserNode banda <150Hz → kick → screenfx.vibración
 - 14 nodos con posiciones base fijas (seed) y deriva sin lenta (`±32×24`).
 - Conexiones: (a) yemas L↔R espejadas (dist < 840), (b) cada yema → 2 nodos más cercanos (dist < 480), (c) nodos→nodos vecinos (dist < 300).
 - Estilo: `lineWidth 3.2`, `shadowBlur 20`, colores `[rojo, rojo, blanco]` alternados, `globalAlpha` según `(1-d/distMax)×intensidad`, intensidad `0.35 + energy×0.007`, composite `'screen'`. Nodos como puntos brillantes (r 4.8).
-
-### effects/drops.js — gotas glitch
-- Nacen SOLO de yemas (rate `energy×0.008`, `energy>5`). **No dan energía** (anti-bucle: las gotas son atmósfera).
-- Física: gravedad 600px/s², deriva lateral sin. Cooldown de nacimiento 0.35s (no impactan al nacer).
-- Render gota: 3 pasadas de la silueta con offset ±4.8px en rojo y cian + centro blanco (aberración cromática), composite screen.
-- Glitch periódico: 3–5 slices horizontales con RGB split y offset aleatorio.
-- Impacto (manos <68px o suelo): burst de 6–14 sparks + eliminar.
+- **Hilos entre manos (protagonistas)**: si la distancia entre palmas `<520px`, los hilos L↔R se dibujan SIEMPRE (sin corte por distancia), se trazan los últimos (por encima del resto) con `lineWidth 5.2`, alpha `≥0.92` y glow `34`, más un núcleo blanco de `2px` con glow `18` (efecto filo).
+- **Carga**: mientras las manos siguen cerca `carga += 0.55×dt` (tope 1); al separarse `carga -= 0.9×dt` (mínimo 0). La vibración de los hilos entre manos es una polilínea de 8 segmentos con offset perpendicular aleatorio `±26px×carga`; alpha y glow también escalan con la carga. Con `prefers-reduced-motion` la vibración se multiplica por `MOTION.EFFECTS_FACTOR`.
 
 ### effects/bolts.js — rayos finos logo↔manos
 - Spawn si `energy>20` y `bolts.length<14`: probabilidad `((energy-20)/80)×0.55` por frame.

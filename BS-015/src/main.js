@@ -8,7 +8,7 @@
 
 import {
   W, H, PALETTES, PALETA_DEFAULT, BG_COLOR, DT_MAX,
-  ENERGY, HANDS, LOGO, ASSETS
+  ENERGY, HANDS, LOGO, CAM, ASSETS
 } from './config.js';
 import { tracker } from './tracker.js';
 import { GestureProcessor, yemas, palma } from './gestures.js';
@@ -18,7 +18,6 @@ import { hud } from './hud.js';
 import { demo } from './demo.js';
 import * as sparks from './effects/sparks.js';
 import * as threads from './effects/threads.js';
-import * as drops from './effects/drops.js';
 import * as bolts from './effects/bolts.js';
 import * as logo from './effects/logo.js';
 import * as facehud from './effects/facehud.js';
@@ -152,6 +151,29 @@ window.addEventListener('keydown', e => {
   if (k === 'd') hooks.onDemo();
 });
 
+/* ── Capa de cámara: video espejado a pantalla completa (cover)
+   + velo negro de baja opacidad para que los efectos sigan
+   leyéndose. En modo demo no hay video: fondo negro. ── */
+function drawCamara() {
+  ctx.fillStyle = BG_COLOR;
+  ctx.fillRect(0, 0, W, H);
+  if (state.modo === 'live' && videoEl.readyState >= 2 && videoEl.videoWidth) {
+    const vw = videoEl.videoWidth, vh = videoEl.videoHeight;
+    // cover: escala el video hasta cubrir el lienzo vertical
+    const s = Math.max(W / vw, H / vh);
+    const dw = vw * s, dh = vh * s;
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.scale(-1, 1); // espejo (como los landmarks: x → 1-x)
+    ctx.filter = CAM.FILTER; // blanco y negro + contraste
+    ctx.drawImage(videoEl, -dw / 2, -dh / 2, dw, dh);
+    ctx.restore(); // restore también limpia el filter
+    // velo negro de baja opacidad
+    ctx.fillStyle = `rgba(0,0,0,${CAM.OVERLAY_ALPHA})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
 /* ── Dibujo de las manos: halo de palma + yemas brillantes ── */
 function drawHands() {
   ctx.save();
@@ -203,23 +225,20 @@ function loop(ts) {
   // Updates de efectos
   sparks.update(dt, state);
   threads.update(dt, state);
-  drops.update(dt, state);
   bolts.update(dt, state);
   logo.update(dt, state);
   screenfx.update(dt, state);
 
-  // M1: limpiar el fondo con la matriz base (fuera del shake → sin ghosting
-  // en los bordes del canvas al vibrar por la onda grave)
+  // M1: fondo con la matriz base (fuera del shake → sin ghosting en los
+  // bordes). En modo live es la cámara espejada + velo negro; en demo, negro.
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = BG_COLOR;
-  ctx.fillRect(0, 0, W, H);
+  drawCamara();
   ctx.restore();
 
   // Dibujo (envuelto en vibración/zoom de la onda grave)
   screenfx.beginFrame(ctx, state.energy, state.motionReduced);
   threads.draw(ctx, state);
-  drops.draw(ctx, state);
   drawHands();
   logo.draw(ctx, state);
   bolts.draw(ctx, state);
@@ -229,6 +248,9 @@ function loop(ts) {
 
   // HUD DOM (no vibra)
   hud.update(state.energy, bolts.activos());
+  // Diagnóstico: si en live se detectan menos de 2 manos, avisar
+  // (sin dos manos no pueden existir los hilos L↔R)
+  hud.setHandHint(state.modo === 'live' && state.hands.length < 2);
 
   requestAnimationFrame(loop);
 }

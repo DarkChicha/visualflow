@@ -1,6 +1,6 @@
 # BS-015 — Cámara + Manos
 
-Pieza de **realidad aumentada de pantalla** (vertical 9:16, 1080×1920) del área AV de Barrett Sessions: la cámara ve tus manos y tu cara y genera visuales generativos en tiempo real — hilos neón, gotas glitch, el logo BARRETT elástico flotante que **intercambia rayos de energía** con tus manos, la sonrisa que convoca energía y la pantalla que **vibra con la onda grave** del acid house.
+Pieza de **realidad aumentada de pantalla** (vertical 9:16, 1080×1920) del área AV de Barrett Sessions: la cámara ve tus manos y tu cara y genera visuales generativos en tiempo real — hilos neón que se tensan y vibran entre las manos, el logo BARRETT elástico flotante que **intercambia rayos de energía** con tus manos, la sonrisa que convoca energía y la pantalla que **vibra con la onda grave** del acid house.
 
 - **Audio**: loop acid house (45 s, 125 BPM, TB-303 + drum machine de la época) generado con ElevenLabs Music API. El bajo pasa por un filtro cuyo **cutoff sigue la distancia entre tus manos** (juntas = sub grave cerrado, abiertas = 303 ácido); el pinch hace un sweep (release del bajo) y el kick real del track dispara la vibración de pantalla.
 - **Stack**: Vite + vanilla JS (ES modules, sin frameworks) + MediaPipe Tasks API (GPU).

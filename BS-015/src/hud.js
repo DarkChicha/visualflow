@@ -17,6 +17,7 @@ class Hud {
     this.btnMute = document.getElementById('btnMute');
     this.btnLimpio = document.getElementById('btnLimpio');
     this.btnDemo = document.getElementById('btnDemo');
+    this.handHint = document.getElementById('handHint');
     this.limpio = false;
 
     this.btnMute.addEventListener('click', () => hooks.onMute());
@@ -55,6 +56,11 @@ class Hud {
   setDemo(activo) {
     this.badge.style.display = activo ? 'block' : 'none';
     this.btnDemo.classList.toggle('activo', activo);
+  }
+
+  /** Hint "muestra las dos manos": solo en live con <2 manos detectadas. */
+  setHandHint(visible) {
+    this.handHint.style.display = visible ? 'block' : 'none';
   }
 
   /** Mensaje del overlay inicial (cargando, error de cámara…). */

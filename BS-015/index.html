@@ -80,6 +80,16 @@
   }
   #demoBadge b { color:#FF2A2A; font-weight:700; }
 
+  /* ── Hint de detección (live): solo aparece si se ve menos de una mano ── */
+  #handHint {
+    position:absolute; top:78px; left:50%; transform:translateX(-50%);
+    z-index:5; pointer-events:none; display:none;
+    font-size:9px; letter-spacing:0.16em; text-transform:uppercase;
+    color:#bbb; background:rgba(0,0,0,0.55);
+    border:1px solid #FF2A2A; border-radius:99px;
+    padding:4px 12px; white-space:nowrap;
+  }
+
   /* ── Overlay inicial ── */
   #overlay {
     position:absolute; inset:0; z-index:10;
@@ -129,6 +139,7 @@
   </div>
 
   <div id="demoBadge"><b>SIN CÁMARA</b> · modo simulador — el mouse mueve las manos</div>
+  <div id="handHint">✋ muestra las dos manos en cámara</div>
 
   <div id="hints">
     <b>Manos</b> = energía <span class="sep">·</span>

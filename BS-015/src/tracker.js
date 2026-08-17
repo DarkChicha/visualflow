@@ -90,8 +90,10 @@ class Tracker {
       video: {
         facingMode: 'user',
         width: { ideal: TRACKER.CAM_W },
-        height: { ideal: TRACKER.CAM_H },
-        aspectRatio: { ideal: TRACKER.CAM_ASPECT }
+        height: { ideal: TRACKER.CAM_H }
+        // NO forzamos aspectRatio: el sensor selfie de muchos celulares es
+        // landscape; forzar 9:16 provoca crop/zoom (teleobjetivo). El
+        // tracker mapea con cover cualquier resolución real al lienzo 9:16.
       },
       audio: false
     });
