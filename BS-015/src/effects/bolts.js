@@ -5,7 +5,7 @@
    blanco, chispas en los extremos. Vida ~0.18s.
    ═══════════════════════════════════════════════════════════════ */
 
-import { BOLTS, MOTION } from '../config.js';
+import { BOLTS, MOTION, CHARGE } from '../config.js';
 import { logoCenter, logoSize, listo } from './logo.js';
 
 const bolts = [];
@@ -39,9 +39,11 @@ export function update(dt, state) {
   if (!listo()) return; // m21: sin logo no hay borde de donde salir
   const energy = state.energy;
   const f = state.motionReduced ? MOTION.EFFECTS_FACTOR : 1; // M10
-  // Spawn: prob = ((energy-20)/80) × 0.55 por frame (m15: normalizada por dt)
+  const cargaN = Math.max(0, Math.min(1, state.carga / CHARGE.MAX));
+  const mSpawn = 1 + (CHARGE.BOLT_SPAWN_MULT - 1) * cargaN; // más rayos con carga
+  // Spawn: prob = ((energy-20)/80) × 0.55 × mSpawn por frame (m15: normalizada por dt)
   if (energy > BOLTS.THRESHOLD && bolts.length < BOLTS.MAX && state.hands.length) {
-    const prob = ((energy - BOLTS.THRESHOLD) / BOLTS.PROB_RANGE) * BOLTS.PROB_FACTOR * dt * 60 * f;
+    const prob = ((energy - BOLTS.THRESHOLD) / BOLTS.PROB_RANGE) * BOLTS.PROB_FACTOR * mSpawn * dt * 60 * f;
     if (Math.random() < prob) {
       const tips = state.hands.flatMap(h => h.tips);
       if (tips.length) {
@@ -71,6 +73,9 @@ export function update(dt, state) {
 export function draw(ctx, state) {
   if (!bolts.length) return;
   const p = state.paleta;
+  const cargaN = Math.max(0, Math.min(1, state.carga / CHARGE.MAX));
+  const mGrosor = 1 + (CHARGE.BOLT_WIDTH_MULT - 1) * cargaN;
+  const mGlow = 1 + (CHARGE.BOLT_GLOW_MULT - 1) * cargaN;
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
   ctx.lineCap = 'round';
@@ -80,25 +85,25 @@ export function draw(ctx, state) {
     // halo de color
     ctx.globalAlpha = a * BOLTS.HALO_ALPHA;
     ctx.strokeStyle = b.color;
-    ctx.lineWidth = BOLTS.HALO_WIDTH;
-    ctx.shadowBlur = BOLTS.HALO_SHADOW;
+    ctx.lineWidth = BOLTS.HALO_WIDTH * mGrosor;
+    ctx.shadowBlur = BOLTS.HALO_SHADOW * mGlow;
     ctx.shadowColor = b.color;
     pathBolt(ctx, b.pts);
     // núcleo blanco (filo)
     ctx.globalAlpha = a * BOLTS.CORE_ALPHA;
     ctx.strokeStyle = p.blanco;
-    ctx.lineWidth = BOLTS.CORE_WIDTH;
+    ctx.lineWidth = BOLTS.CORE_WIDTH * mGrosor;
     ctx.shadowBlur = 0;
     pathBolt(ctx, b.pts);
     // chispas en los extremos
     ctx.globalAlpha = a;
     ctx.fillStyle = p.blanco;
     ctx.beginPath();
-    ctx.arc(b.pts[0].x, b.pts[0].y, BOLTS.SPARK_R, 0, Math.PI * 2);
+    ctx.arc(b.pts[0].x, b.pts[0].y, BOLTS.SPARK_R * mGrosor, 0, Math.PI * 2);
     ctx.fill();
     const ultimo = b.pts[b.pts.length - 1];
     ctx.beginPath();
-    ctx.arc(ultimo.x, ultimo.y, BOLTS.SPARK_R, 0, Math.PI * 2);
+    ctx.arc(ultimo.x, ultimo.y, BOLTS.SPARK_R * mGrosor, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();

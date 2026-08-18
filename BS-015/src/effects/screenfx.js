@@ -6,7 +6,7 @@
    amp = kick² × 30 + energy/100 × 2.6 ; zoom = 1 + kick × 0.006
    ═══════════════════════════════════════════════════════════════ */
 
-import { W, H, SCREENFX, MOTION } from '../config.js';
+import { W, H, SCREENFX, MOTION, CHARGE } from '../config.js';
 
 const kicks = [];
 let ampActual = 0;
@@ -55,9 +55,12 @@ export function kickActual() {
  * pieza va entre beginFrame y endFrame (el HUD DOM no vibra).
  * @param {number} motionReduced  prefers-reduced-motion (M10)
  */
-export function beginFrame(ctx, energy, motionReduced) {
+export function beginFrame(ctx, energy, motionReduced, carga = 0) {
   const kick = kickActual();
-  let amp = kick * kick * SCREENFX.AMP_KICK + (energy / 100) * SCREENFX.AMP_ENERGY;
+  // carga Kamehameha: suma vibración proporcional (tope = SCREEN_SHAKE_MAX px)
+  const cargaN = Math.max(0, Math.min(1, carga / CHARGE.MAX));
+  const ampCarga = cargaN * CHARGE.SCREEN_SHAKE_MAX;
+  let amp = kick * kick * SCREENFX.AMP_KICK + (energy / 100) * SCREENFX.AMP_ENERGY + ampCarga;
   if (motionReduced) amp *= MOTION.SCREENFX_AMP;
   ampActual = amp;
   const zoom = 1 + kick * SCREENFX.ZOOM_KICK;

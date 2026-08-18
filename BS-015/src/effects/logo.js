@@ -11,7 +11,7 @@
    · Pulso de escala alrededor del centro según energía.
    ═══════════════════════════════════════════════════════════════ */
 
-import { LOGO, ASSETS } from '../config.js';
+import { LOGO, ASSETS, CHARGE } from '../config.js';
 
 const img = new Image();
 let imgW = 0, imgH = 0, ready = false;
@@ -252,7 +252,10 @@ export function draw(ctx, state) {
   // Flotación: deriva aplicada en el render (la física no se entera)
   const fc = logoCenter(time);
   ctx.translate(fc.x - LOGO.CENTER_X, fc.y - LOGO.CENTER_Y);
-  ctx.shadowBlur = LOGO.SHADOW_BASE + energy * LOGO.SHADOW_ENERGY;
+  // Glow base + energía + carga Kamehameha (halo más intenso al cargar)
+  const cargaN = Math.max(0, Math.min(1, state.carga / CHARGE.MAX));
+  const mGlow = 1 + (CHARGE.LOGO_GLOW_MULT - 1) * cargaN;
+  ctx.shadowBlur = (LOGO.SHADOW_BASE + energy * LOGO.SHADOW_ENERGY) * mGlow;
   ctx.shadowColor = 'rgba(255,255,255,0.55)';
   ctx.drawImage(off, r.x - m, r.y - m);
   ctx.restore();

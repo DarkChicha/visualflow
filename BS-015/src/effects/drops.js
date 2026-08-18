@@ -7,7 +7,7 @@
    o suelo): burst de sparks.
    ═══════════════════════════════════════════════════════════════ */
 
-import { H, DROPS, MOTION } from '../config.js';
+import { H, DROPS, MOTION, CHARGE } from '../config.js';
 import { burst } from './sparks.js';
 
 const drops = [];
@@ -28,8 +28,10 @@ function spawnDrop(origin) {
 export function update(dt, state) {
   // Nacen SOLO de yemas, en proporción a la energía convocada (m15: por dt)
   const f = state.motionReduced ? MOTION.EFFECTS_FACTOR : 1;
+  const cargaN = Math.max(0, Math.min(1, state.carga / CHARGE.MAX));
+  const mSpawn = 1 + (CHARGE.SPARK_SPAWN_MULT - 1) * cargaN; // más gotas con carga
   if (state.energy > DROPS.MIN_ENERGY && state.hands.length &&
-      Math.random() < state.energy * DROPS.RATE_FACTOR * dt * 60 * f) {
+      Math.random() < state.energy * DROPS.RATE_FACTOR * mSpawn * dt * 60 * f) {
     const tips = state.hands.flatMap(h => h.tips);
     if (tips.length) spawnDrop(tips[Math.floor(Math.random() * tips.length)]);
   }
@@ -81,10 +83,12 @@ function dropPath(ctx, x, y, s) {
 export function draw(ctx, state) {
   if (!drops.length) return;
   const p = state.paleta;
+  const cargaN = Math.max(0, Math.min(1, state.carga / CHARGE.MAX));
+  const mSize = 1 + (CHARGE.DROP_SIZE_MULT - 1) * cargaN; // más grandes con carga
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
   for (const dp of drops) {
-    const x = dp.x, y = dp.y, s = dp.size;
+    const x = dp.x, y = dp.y, s = dp.size * mSize;
     const col = dp.hue > 0.5 ? p.cian : p.magenta;
 
     if (dp.glitchT > 0) {

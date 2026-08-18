@@ -8,7 +8,7 @@
 
 import {
   W, H, PALETTES, PALETA_DEFAULT, BG_COLOR, DT_MAX,
-  ENERGY, HANDS, LOGO, CAM, ASSETS
+  ENERGY, HANDS, LOGO, CAM, ASSETS, CHARGE
 } from './config.js';
 import { tracker } from './tracker.js';
 import { GestureProcessor, yemas, palma } from './gestures.js';
@@ -33,6 +33,7 @@ const state = {
   spread: ENERGY.SPREAD_REPOSO, // distancia entre manos / W → filtro del bajo
   velocidad: 0,            // velocidad media de yemas (pantallas/s)
   energy: ENERGY.INICIAL,
+  carga: 0,                // carga Kamehameha 0-100: sube con manos juntas
   motionReduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches // M10
 };
 
@@ -203,6 +204,21 @@ function drawHands() {
   ctx.restore();
 }
 
+/* ── Carga Kamehameha ── */
+function updateCarga(dt) {
+  const c = CHARGE;
+  if (state.hands.length === 2) {
+    const d = Math.hypot(
+      state.hands[0].palm.x - state.hands[1].palm.x,
+      state.hands[0].palm.y - state.hands[1].palm.y);
+    if (d < c.NEAR_DIST_PX) {
+      state.carga = Math.min(c.MAX, state.carga + c.RISE * dt);
+      return;
+    }
+  }
+  state.carga = Math.max(0, state.carga - c.DECAY * dt);
+}
+
 /* ── Game loop: lee estado → energy → effects (no espera a MediaPipe) ── */
 let last = performance.now();
 function loop(ts) {
@@ -218,6 +234,9 @@ function loop(ts) {
     velocidad: state.velocidad,
     smile: state.face.smile
   });
+
+  // Carga Kamehameha: sube mientras las palmas están cerca, decae al separar
+  updateCarga(dt);
 
   // Audio reactivo (filtro por spread + kick → vibración)
   audio.update(dt, state, hooks);
@@ -236,8 +255,8 @@ function loop(ts) {
   drawCamara();
   ctx.restore();
 
-  // Dibujo (envuelto en vibración/zoom de la onda grave)
-  screenfx.beginFrame(ctx, state.energy, state.motionReduced);
+  // Dibujo (envuelto en vibración/zoom de la onda grave + carga)
+  screenfx.beginFrame(ctx, state.energy, state.motionReduced, state.carga);
   threads.draw(ctx, state);
   drawHands();
   logo.draw(ctx, state);

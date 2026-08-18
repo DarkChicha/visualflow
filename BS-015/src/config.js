@@ -35,6 +35,26 @@ export const ENERGY = {
   SPREAD_RELAX: 0.05     // velocidad de relajación hacia el reposo (por frame)
 };
 
+// ── Carga Kamehameha (manos juntas) ──
+export const CHARGE = {
+  NEAR_DIST_PX: 260,      // distancia palma-palma para empezar a cargar
+  RISE: 38,               // puntos por segundo juntas
+  DECAY: 22,              // puntos por segundo al separar
+  MAX: 100,
+  // Multiplicadores a carga máxima (1 = sin cambio)
+  THREAD_WIDTH_MULT: 2.8,   // hilos entre manos más gruesos
+  THREAD_GLOW_MULT: 2.2,
+  THREAD_VIBRA_MULT: 1.6,   // vibración de los hilos entre manos
+  BOLT_WIDTH_MULT: 2.5,     // rayos logo↔manos más gruesos
+  BOLT_GLOW_MULT: 2.0,
+  BOLT_SPAWN_MULT: 3.0,     // más rayos
+  SPARK_SIZE_MULT: 2.2,   // chispas más grandes
+  SPARK_SPAWN_MULT: 2.5,    // más chispas
+  DROP_SIZE_MULT: 1.6,      // gotas más grandes
+  SCREEN_SHAKE_MAX: 10,    // vibración extra de pantalla (px) a carga máxima
+  LOGO_GLOW_MULT: 1.8       // halo del logo más intenso
+};
+
 // ── Tracker MediaPipe Tasks ──
 export const TRACKER = {
   CDN: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14',
@@ -133,9 +153,9 @@ export const THREADS = {
   DIST_MIRROR: 840,  // yemas L↔R espejadas
   DIST_TIP_NODE: 480, // yema → 2 nodos más cercanos
   DIST_NODE_NODE: 300, // nodos vecinos
-  LINE_WIDTH: 3.2,
-  SHADOW: 20,
-  NODE_R: 4.8,
+  LINE_WIDTH: 4.8,
+  SHADOW: 26,
+  NODE_R: 5.6,
   INTENSITY_BASE: 0.35,
   INTENSITY_ENERGY: 0.007,
   ALPHA_MIRROR: 0.85, ALPHA_MIRROR_DIST: 0.35,
@@ -149,17 +169,17 @@ export const THREADS = {
      y dominan visualmente: trazo grueso, alpha alta y núcleo blanco. */
   MANOS_CERCA_DIST: 980,      // umbral de cercanía entre palmas (px): ~0.9×W
                               // (brazos extendidos en el encuadre real entran)
-  ENTRE_MANOS_WIDTH: 5.2,     // grosor del hilo entre manos (px)
+  ENTRE_MANOS_WIDTH: 7.2,     // grosor del hilo entre manos (px)
   ENTRE_MANOS_ALPHA: 0.92,    // alpha base (sube con la carga)
   ENTRE_MANOS_ALPHA_CARGA: 0.08, // alpha extra a carga máxima
-  ENTRE_MANOS_SHADOW: 34,     // glow base del hilo
-  ENTRE_MANOS_SHADOW_CARGA: 26, // glow extra a carga máxima
-  ENTRE_MANOS_CORE_WIDTH: 2,  // grosor del núcleo blanco (efecto filo)
+  ENTRE_MANOS_SHADOW: 42,     // glow base del hilo
+  ENTRE_MANOS_SHADOW_CARGA: 34, // glow extra a carga máxima
+  ENTRE_MANOS_CORE_WIDTH: 3,   // grosor del núcleo blanco (efecto filo)
   ENTRE_MANOS_CORE_ALPHA: 0.98,
-  ENTRE_MANOS_CORE_SHADOW: 18, // glow del núcleo blanco
+  ENTRE_MANOS_CORE_SHADOW: 22, // glow del núcleo blanco
   // Con las manos lejos el hilo L↔R se dibuja igual (nunca se pierde),
   // con piso de alpha y algo menos de grosor
-  ENTRE_MANOS_LEJOS_WIDTH: 4,
+  ENTRE_MANOS_LEJOS_WIDTH: 5.2,
   ENTRE_MANOS_LEJOS_ALPHA: 0.5,
 
   /* Carga: se acumula mientras las manos siguen cerca y decae al separarse.
@@ -167,7 +187,7 @@ export const THREADS = {
   CARGA_RATE: 0.55,           // unidades de carga por segundo (juntas)
   CARGA_DECAY: 0.9,           // unidades por segundo (separadas)
   CARGA_MAX: 1,               // tope de carga
-  VIBRACION_CARGA: 26,        // offset perpendicular máximo a carga tope (px)
+  VIBRACION_CARGA: 30,        // offset perpendicular máximo a carga tope (px)
   VIBRACION_SEGS: 8           // segmentos de la polilínea vibrante
 };
 
@@ -176,10 +196,10 @@ export const SPARKS = {
   MAX: 320,
   VEL: 180, VEL_UP: 40,
   DECAY_MIN: 1.4, DECAY_RAND: 1,
-  SIZE_MIN: 2, SIZE_RAND: 4.4,
+  SIZE_MIN: 3, SIZE_RAND: 5.6,
   GRAVITY: 80,
-  GLOW: 16,
-  TIP_SPAWN_PROB: 0.5,  // chispa continua de yemas (probabilidad por frame)
+  GLOW: 18,
+  TIP_SPAWN_PROB: 0.55,  // chispa continua de yemas (probabilidad por frame)
   PINCH_BURST: 26,      // ráfaga al hacer pinch
   PINCH_SCATTER: 80     // dispersión de la ráfaga de pinch (px)
 };
@@ -193,9 +213,9 @@ export const BOLTS = {
   PROB_FACTOR: 0.55,        // prob = ((energy-20)/80) × 0.55 por frame
   PROB_RANGE: 80,           // (energy-20)/80
   LIFE_DECAY: 5.5,          // vida ~0.18 s
-  HALO_WIDTH: 3.2, HALO_SHADOW: 28, HALO_ALPHA: 0.5,
-  CORE_WIDTH: 1.6, CORE_ALPHA: 0.95,
-  SPARK_R: 4.4,             // chispas en los extremos
+  HALO_WIDTH: 4.8, HALO_SHADOW: 34, HALO_ALPHA: 0.5,
+  CORE_WIDTH: 2.4, CORE_ALPHA: 0.95,
+  SPARK_R: 5.2,             // chispas en los extremos
   EDGE_FACTOR: 0.42         // borde del logo: radios w×0.42 / h×0.42
 };
 
@@ -203,8 +223,8 @@ export const BOLTS = {
 export const FACEHUD = {
   CORNER_LEN: 36,   // largo de los corner brackets (px)
   PAD: 8,           // separación del marco respecto al faceBox (px)
-  LINE_WIDTH: 4.8,
-  GLOW: 24
+  LINE_WIDTH: 6.0,
+  GLOW: 26
 };
 
 // ── Onda grave / screenfx ──

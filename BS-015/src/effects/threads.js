@@ -11,16 +11,12 @@
    más carga, más vibran (jitter perpendicular) y más glow tienen.
    ═══════════════════════════════════════════════════════════════ */
 
-import { W, H, THREADS, MOTION } from '../config.js';
+import { W, H, THREADS, MOTION, CHARGE } from '../config.js';
 
 // Nodos flotantes (anclas de los hilos): posición base fija + deriva
 const nodes = THREADS.NODE_SEED.map((s, i) => ({
   bx: s[0] * W, by: s[1] * H, i, x: 0, y: 0
 }));
-
-// Estado de la carga entre manos (se actualiza en update, se lee en draw)
-let carga = 0;   // 0 … THREADS.CARGA_MAX
-let cerca = false; // ¿las dos palmas están dentro del umbral de cercanía?
 
 // Paleta de hilos: [rojo, rojo, blanco] alternados
 function colHilo(p, i) {
@@ -33,6 +29,11 @@ function distPalmas(hands) {
   const r = hands.find(h => h.handedness === 'Right');
   if (!l || !r) return Infinity;
   return Math.hypot(l.palm.x - r.palm.x, l.palm.y - r.palm.y);
+}
+
+/** Carga normalizada 0-1 (estado global Kamehameha). */
+function cargaN(state) {
+  return Math.max(0, Math.min(1, state.carga / CHARGE.MAX));
 }
 
 /**
@@ -62,12 +63,6 @@ export function update(dt, state) {
     n.x = n.bx + Math.sin(t * THREADS.DRIFT_FREQ_X + n.i * 1.9) * THREADS.DRIFT_X;
     n.y = n.by + Math.cos(t * THREADS.DRIFT_FREQ_Y + n.i * 2.3) * THREADS.DRIFT_Y;
   }
-
-  // Carga: sube mientras las manos siguen cerca, decae al separarse
-  cerca = distPalmas(state.hands) < THREADS.MANOS_CERCA_DIST;
-  carga = cerca
-    ? Math.min(THREADS.CARGA_MAX, carga + THREADS.CARGA_RATE * dt)
-    : Math.max(0, carga - THREADS.CARGA_DECAY * dt);
 }
 
 export function draw(ctx, state) {
@@ -138,9 +133,16 @@ export function draw(ctx, state) {
 
   /* 4) hilos ENTRE MANOS (yemas espejadas L↔R) — se dibujan los últimos
      para que queden por encima y dominen la lectura de la pieza. */
+  const cerca = distPalmas(state.hands) < THREADS.MANOS_CERCA_DIST;
+  const carga = cargaN(state); // 0-1, Kamehameha global
+  // multiplicadores por carga (1 a carga 0 → crecen hasta el tope)
+  const mGrosor = 1 + (CHARGE.THREAD_WIDTH_MULT - 1) * carga;
+  const mGlow = 1 + (CHARGE.THREAD_GLOW_MULT - 1) * carga;
+  const mVibra = 1 + (CHARGE.THREAD_VIBRA_MULT - 1) * carga;
+
   if (tipsL.length && tipsR.length) {
     // vibración proporcional a la carga (reducida si prefers-reduced-motion)
-    const ampVibra = carga * THREADS.VIBRACION_CARGA *
+    const ampVibra = carga * THREADS.VIBRACION_CARGA * mVibra *
       (state.motionReduced ? MOTION.EFFECTS_FACTOR : 1);
 
     for (let i = 0; i < Math.min(tipsL.length, tipsR.length); i++) {
@@ -153,16 +155,16 @@ export function draw(ctx, state) {
         ctx.strokeStyle = col;
         ctx.globalAlpha = Math.min(1,
           THREADS.ENTRE_MANOS_ALPHA + carga * THREADS.ENTRE_MANOS_ALPHA_CARGA);
-        ctx.lineWidth = THREADS.ENTRE_MANOS_WIDTH;
-        ctx.shadowBlur = THREADS.ENTRE_MANOS_SHADOW + carga * THREADS.ENTRE_MANOS_SHADOW_CARGA;
+        ctx.lineWidth = THREADS.ENTRE_MANOS_WIDTH * mGrosor;
+        ctx.shadowBlur = (THREADS.ENTRE_MANOS_SHADOW + carga * THREADS.ENTRE_MANOS_SHADOW_CARGA) * mGlow;
         ctx.shadowColor = col;
         trazar(ctx, a, b, ampVibra);
 
         // núcleo blanco brillante (efecto filo) sobre el mismo trazo
         ctx.strokeStyle = p.blanco;
         ctx.globalAlpha = THREADS.ENTRE_MANOS_CORE_ALPHA;
-        ctx.lineWidth = THREADS.ENTRE_MANOS_CORE_WIDTH;
-        ctx.shadowBlur = THREADS.ENTRE_MANOS_CORE_SHADOW;
+        ctx.lineWidth = THREADS.ENTRE_MANOS_CORE_WIDTH * mGrosor;
+        ctx.shadowBlur = THREADS.ENTRE_MANOS_CORE_SHADOW * mGlow;
         ctx.shadowColor = p.blanco;
         trazar(ctx, a, b, ampVibra);
 
@@ -175,8 +177,8 @@ export function draw(ctx, state) {
           THREADS.ENTRE_MANOS_LEJOS_ALPHA,
           Math.min(THREADS.ALPHA_MIRROR,
             intensity + (1 - d / THREADS.DIST_MIRROR) * THREADS.ALPHA_MIRROR_DIST));
-        ctx.lineWidth = THREADS.ENTRE_MANOS_LEJOS_WIDTH;
-        ctx.shadowBlur = THREADS.SHADOW;
+        ctx.lineWidth = THREADS.ENTRE_MANOS_LEJOS_WIDTH * mGrosor;
+        ctx.shadowBlur = THREADS.SHADOW * mGlow;
         ctx.shadowColor = col;
         trazar(ctx, a, b, ampVibra); // la carga residual aún vibra al separarse
         ctx.lineWidth = THREADS.LINE_WIDTH;

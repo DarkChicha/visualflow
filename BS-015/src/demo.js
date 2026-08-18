@@ -7,7 +7,7 @@
    Escribe directamente en el estado compartido de main.js.
    ═══════════════════════════════════════════════════════════════ */
 
-import { W, H, HANDS, DEMO } from './config.js';
+import { W, H, HANDS, DEMO, CHARGE } from './config.js';
 
 class Demo {
   constructor() {
@@ -132,6 +132,13 @@ class Demo {
     }));
     // spread normalizado: distancia entre palmas / ancho (alimenta el filtro)
     this.state.spread = (this.spread * 2) / W;
+    // Carga Kamehameha simulada: misma regla que live (palmas juntas = cargar)
+    const distPalmas = this.spread * 2;
+    if (distPalmas < CHARGE.NEAR_DIST_PX) {
+      this.state.carga = Math.min(CHARGE.MAX, this.state.carga + CHARGE.RISE * dt);
+    } else {
+      this.state.carga = Math.max(0, this.state.carga - CHARGE.DECAY * dt);
+    }
     // velocidad decae sola (la alimenta el pointermove) — DEMO.VELOCIDAD_DECAY
     this.velocidad = Math.max(0, this.velocidad - DEMO.VELOCIDAD_DECAY * dt);
     this.state.velocidad = this.velocidad;

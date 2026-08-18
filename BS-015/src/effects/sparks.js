@@ -4,9 +4,10 @@
    impactos de gotas). Caen con gravedad leve y mueren por decay.
    ═══════════════════════════════════════════════════════════════ */
 
-import { SPARKS, MOTION } from '../config.js';
+import { SPARKS, MOTION, CHARGE } from '../config.js';
 
 const sparks = [];
+let cargaActual = 0; // se lee en draw (el módulo no recibe state ahí)
 
 function coloresPaleta(p) {
   return [p.cian, p.magenta, p.rojo];
@@ -43,9 +44,12 @@ export function burstPinch(x, y, paleta) {
 }
 
 export function update(dt, state) {
-  // Chispas continuas de las yemas (m15: normalizada por dt; M10: reduced motion)
   const f = state.motionReduced ? MOTION.EFFECTS_FACTOR : 1;
-  if (state.hands.length && Math.random() < SPARKS.TIP_SPAWN_PROB * dt * 60 * f) {
+  const cargaN = Math.max(0, Math.min(1, state.carga / CHARGE.MAX));
+  cargaActual = cargaN; // para el tamaño en draw
+  const mSpawn = 1 + (CHARGE.SPARK_SPAWN_MULT - 1) * cargaN; // más chispas con carga
+  // Chispas continuas de las yemas (m15: normalizada por dt; M10: reduced motion)
+  if (state.hands.length && Math.random() < SPARKS.TIP_SPAWN_PROB * mSpawn * dt * 60 * f) {
     const tips = state.hands.flatMap(h => h.tips);
     if (tips.length) {
       const t = tips[Math.floor(Math.random() * tips.length)];
@@ -65,14 +69,15 @@ export function update(dt, state) {
 
 export function draw(ctx) {
   if (!sparks.length) return;
+  const mSize = 1 + (CHARGE.SPARK_SIZE_MULT - 1) * cargaActual; // más grandes con carga
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
   for (const p of sparks) {
     ctx.globalAlpha = Math.max(p.life, 0);
     ctx.fillStyle = p.color;
-    ctx.shadowBlur = SPARKS.GLOW;
+    ctx.shadowBlur = SPARKS.GLOW * mSize;
     ctx.shadowColor = p.color;
-    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    ctx.fillRect(p.x - p.size * mSize / 2, p.y - p.size * mSize / 2, p.size * mSize, p.size * mSize);
   }
   ctx.restore();
 }
