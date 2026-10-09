@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>10A-Face — Fragment</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; overflow: hidden; font-family: ui-monospace, Consolas, monospace; }
+    #stage { position: fixed; inset: 0; display: grid; place-items: center; }
+    canvas { height: 100vh; width: auto; max-width: 100vw; aspect-ratio: 9 / 16; background: #000; }
+    #hint { position: fixed; left: 12px; bottom: 12px; color: #aaa; font-size: 12px; line-height: 1.5; pointer-events: none; text-shadow: 0 0 4px #000; }
+    #drop { position: fixed; inset: 0; display: none; place-items: center; background: rgba(0,0,0,.6); color: #fff; font-size: 20px; }
+    #drop.on { display: grid; }
+  </style>
+</head>
+<body>
+  <div id="stage"><canvas id="c" width="1080" height="1920"></canvas></div>
+  <div id="hint">arrastra un video · espacio: pausa · R: nueva semilla · S: sonido · H: ocultar paneles</div>
+  <div id="drop">Suelta el video aquí</div>
+  <video id="v" muted loop playsinline crossorigin="anonymous" style="display:none"></video>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
